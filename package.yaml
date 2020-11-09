@@ -27,7 +27,6 @@ dependencies:
 - bytestring
 - mtl
 - transformers
-- async
 - text
 - unliftio
 - unliftio-core
@@ -35,7 +34,6 @@ dependencies:
 - monad-logger
 - megaparsec
 - parser-combinators
-- lens
 - optparse-generic
 - filepath
 
