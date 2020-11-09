@@ -62,4 +62,4 @@ parseFile :: Parser a -> String -> IO a
 parseFile f s = readFile s >>= (either (fail . errorBundlePretty) pure . parse f s) . pack
 
 parseConfFile :: String -> IO [Guess]
-parseConfFile = parseFile (some parseGuess)
+parseConfFile = parseFile (sc >> some parseGuess)
