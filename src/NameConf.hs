@@ -5,28 +5,30 @@ import           Control.Monad.Combinators.Expr (Operator (..), makeExprParser)
 import           Data.Char                      (isAlpha)
 import           Data.Text                      (Text, pack)
 import           Data.Void                      (Void)
-import           Text.Megaparsec                (Parsec, parse, satisfy, some)
+import           Text.Megaparsec                (Parsec, between, parse, satisfy, some)
 import           Text.Megaparsec.Char           (space1)
 import qualified Text.Megaparsec.Char.Lexer     as L
 import           Text.Megaparsec.Error          (errorBundlePretty)
 
 type Parser = Parsec Void Text
 
-data Field = Channel | Temperature | ID deriving Show
+data Field = Channel | Temperature | ID deriving (Show, Eq)
 
-data Guess = Guess Expr Text deriving Show
+data Guess = Guess Expr Text deriving (Show, Eq)
 
 data Expr = EComp Field Ordering Double
           | EAnd Expr Expr
           | EOr Expr Expr
-          deriving Show
+          deriving (Show, Eq)
 
 parseExpr :: Parser Expr
-parseExpr = makeExprParser fragment operators
+parseExpr = makeExprParser inner operators
 
   where
     operators = [[blog "&&" EAnd, blog "||" EOr]]
     blog s c = InfixL (c <$ symbol s)
+
+    inner = between (symbol "(")  (symbol ")") parseExpr <|> fragment
 
     fragment = EComp <$> parseField <*> parseComp <*> lexeme (L.signed sc L.decimal)
 

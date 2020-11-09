@@ -1,0 +1,6 @@
+channel = 1 -> one
+channel = 1 -> unused
+id = 6 -> six
+id = 4 || (channel = 2 && temperature > 11) -> overeleven
+channel = 2 && temperature < -5 -> coldoutside
+channel = 2 -> otherwise

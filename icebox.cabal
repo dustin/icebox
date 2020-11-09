@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ac218e2d4545dc74a2f431a5d4ef0ade07f6188c1f2f9bb4f457d48f87493e5c
+-- hash: d1d1526e818a48ebd23cce7b119849aa6c2f45cc87d7b58b21e4c2ae126d7458
 
 name:           icebox
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       Logging
       NameConf
+      Sensors
   other-modules:
       Paths_icebox
   hs-source-dirs:

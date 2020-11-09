@@ -16,7 +16,6 @@ import qualified Data.ByteString.Char8      as BC
 import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString.Lazy.Char8 as BCL
 import           Data.Char                  (digitToInt)
-import           Data.Foldable              (find)
 import           Data.Map.Strict            (Map)
 import qualified Data.Map.Strict            as Map
 import qualified Data.Text                  as T
@@ -31,13 +30,7 @@ import           UnliftIO                   (STM, TVar, atomically, modifyTVar',
 
 import           Logging
 import           NameConf
-
-data Sensor = Sensor {
-  _temperature :: Double -- celsius
-  , _batteryOK :: Bool
-  , _channel   :: Int
-  , _sid       :: Int
-  } deriving Show
+import           Sensors
 
 type FragMap = Map Int (Map Text BL.ByteString)
 
@@ -80,23 +73,10 @@ resolve fm i = Sensor
     fs2c = fmap f2c . readBS
     f2c f  = (f - 32) * 5 / 9
 
-name :: Sensor -> Icebox (Maybe Text)
-name Sensor{..} = asks (fmap nameOf . find (eval . exprOf) . guesses)
-
-  where
-    nameOf (Guess _ n) = n
-    exprOf (Guess e _) = e
-    eval (EComp Channel o x)     = o == compare (fromIntegral _channel) x
-    eval (EComp ID o x)          = o == compare (fromIntegral _sid) x
-    eval (EComp Temperature o x) = o == compare _temperature x
-    eval (EAnd e f)              = eval e && eval f
-    eval (EOr e f)               = eval e || eval f
-
-
 handleSensor :: MQTTClient -> Text -> Maybe Sensor -> Icebox ()
 -- To keep things sensible, we only process temperature updates on complete sensors
 handleSensor c "temperature_F" (Just s) = do
-  Just n <- name s
+  Just n <- asks (evaluate s . guesses)
   prev <- Map.lookup n <$> (readTVarIO =<< asks sensors)
   logDebugL ["prev: ", tshow prev]
   if match prev s
