@@ -10,7 +10,7 @@
 module Main where
 
 import           Control.Monad.IO.Class     (MonadIO (..))
-import           Control.Monad.Logger       (LoggingT, runStderrLoggingT)
+import           Control.Monad.Logger       (LogLevel (..), LoggingT, filterLogger, runStderrLoggingT)
 import           Control.Monad.Reader       (ReaderT (..), asks, runReaderT)
 import qualified Data.ByteString.Char8      as BC
 import qualified Data.ByteString.Lazy       as BL
@@ -39,6 +39,7 @@ data Options w = Options {
   , inPrefix  :: w ::: Text <?> "Input prefix (e.g., rtl_433/)"
   , outPrefix :: w ::: Text <?> "Output prefix (e.g., sensors/)"
   , nameFile  :: w ::: FilePath <?> "Path for channel naming rules file"
+  , verbose   :: w ::: Bool <?> "Enable verbose logging"
   } deriving (Generic)
 
 instance ParseRecord (Options Wrapped)
@@ -132,9 +133,12 @@ run = do
 
 main :: IO ()
 main = do
-  opts@Options{nameFile} <- unwrapRecord "icebox"
+  opts@Options{nameFile, verbose} <- unwrapRecord "icebox"
   conf <- parseConfFile nameFile
 
   sv <- newTVarIO mempty
   fv <- newTVarIO mempty
-  runStderrLoggingT . runReaderT run $ Env opts conf sv fv
+  runStderrLoggingT . logfilt verbose . runReaderT run $ Env opts conf sv fv
+
+  where
+    logfilt v = filterLogger (\_ -> flip (if v then (>=) else (>)) LevelDebug)
