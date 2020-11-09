@@ -2,11 +2,11 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 
-import Text.Megaparsec (parse)
 import           Data.Text             (Text, pack, unpack)
+import           Text.Megaparsec       (parse)
 
-import NameConf
-import Sensors
+import           NameConf
+import           Sensors
 
 testParsers :: [TestTree]
 testParsers = map (\(t, want) -> testCase (unpack t) $ assertEqual "" want (parse parseGuess "" t)) [
