@@ -114,7 +114,7 @@ message c t m = do
   handleSensor c v (resolve fm i)
 
   where
-    storeFrag i v fm = Map.unionWith Map.union fm (Map.singleton i (Map.singleton v m))
+    storeFrag i v fm = Map.unionWith Map.union (Map.singleton i (Map.singleton v m)) fm
 
 run :: Icebox ()
 run = do
