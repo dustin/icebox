@@ -18,7 +18,7 @@ data Sensor = Sensor {
   , _batteryOK :: Bool
   , _channel   :: Int
   , _sid       :: Int
-  } deriving Show
+  } deriving (Show, Eq)
 
 evaluate :: Sensor -> [Guess] -> Maybe Text
 evaluate Sensor{..} = fmap nameOf . find (eval . exprOf)
@@ -47,7 +47,9 @@ resolve fm i = Sensor
     readBS = readMaybe . BC.unpack . BL.toStrict
 
     fs2c = fmap f2c . readBS
-    f2c f  = (f - 32) * 5 / 9
+
+f2c :: Double -> Double
+f2c f = (f - 32) * 5 / 9
 
 storeFrag :: Int -> Text -> BL.ByteString -> FragMap -> FragMap
 storeFrag i k v = Map.unionWith Map.union (Map.singleton i (Map.singleton k v))
