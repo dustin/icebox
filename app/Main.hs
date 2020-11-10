@@ -12,10 +12,8 @@ module Main where
 import           Control.Monad.IO.Class     (MonadIO (..))
 import           Control.Monad.Logger       (LogLevel (..), LoggingT, filterLogger, runStderrLoggingT)
 import           Control.Monad.Reader       (ReaderT (..), asks, runReaderT)
-import qualified Data.ByteString.Char8      as BC
 import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString.Lazy.Char8 as BCL
-import           Data.Char                  (digitToInt)
 import           Data.Map.Strict            (Map)
 import qualified Data.Map.Strict            as Map
 import qualified Data.Text                  as T
@@ -24,15 +22,12 @@ import           Network.MQTT.Client        (MQTTClient, MQTTConfig (..), Messag
                                              mqttConfig, pubAliased, subOptions, subscribe, waitForClient)
 import           Network.URI                (parseURI)
 import           Options.Generic
-import           Text.Read                  (readMaybe)
 import           UnliftIO                   (STM, TVar, atomically, modifyTVar', newTVarIO, readTVar, readTVarIO,
                                              withRunInIO)
 
 import           Logging
 import           NameConf
 import           Sensors
-
-type FragMap = Map Int (Map Text BL.ByteString)
 
 data Options w = Options {
   mqttURI     :: w ::: Text <?> "URI of mqtt server to talk to"
@@ -56,23 +51,6 @@ type Icebox = ReaderT Env (LoggingT IO)
 
 modifyTVarRet :: TVar a -> (a -> a) -> STM a
 modifyTVarRet v f = modifyTVar' v f >> readTVar v
-
-resolve :: FragMap -> Int -> Maybe Sensor
-resolve fm i = Sensor
-               <$> convl "temperature_F" fs2c
-               <*> convl "battery_ok" (pure . (== "1"))
-               <*> convl "channel" (pure . digitToInt . head . BC.unpack . BL.toStrict)
-               <*> convl "id" readBS
-
-  where
-    convl :: Text -> (BL.ByteString -> Maybe a) -> Maybe a
-    convl n f = f =<< Map.lookup n =<< Map.lookup i fm
-
-    readBS :: Read a => BL.ByteString -> Maybe a
-    readBS = readMaybe . BC.unpack . BL.toStrict
-
-    fs2c = fmap f2c . readBS
-    f2c f  = (f - 32) * 5 / 9
 
 handleSensor :: MQTTClient -> Text -> Maybe Sensor -> Icebox ()
 -- To keep things sensible, we only process temperature updates on complete sensors
@@ -109,12 +87,9 @@ message c t m = do
   let [s,v] = T.splitOn "/" x
       i = (read . T.unpack) s :: Int
   fv <- asks frags
-  fm <- atomically . modifyTVarRet fv $ storeFrag i v
+  fm <- atomically . modifyTVarRet fv $ storeFrag i v m
 
   handleSensor c v (resolve fm i)
-
-  where
-    storeFrag i v fm = Map.unionWith Map.union (Map.singleton i (Map.singleton v m)) fm
 
 run :: Icebox ()
 run = do
