@@ -21,6 +21,7 @@ import           Network.MQTT.Client        (MQTTClient, MQTTConfig (..), Messag
                                              ProtocolLevel (..), QoS (..), SubOptions (..), Topic, connectURI,
                                              mqttConfig, pubAliased, subOptions, subscribe, waitForClient)
 import           Network.URI                (parseURI)
+import           Numeric                    (showFFloat)
 import           Options.Generic
 import           UnliftIO                   (STM, TVar, atomically, modifyTVar', newTVarIO, readTVar, readTVarIO,
                                              withRunInIO)
@@ -72,11 +73,13 @@ handleSensor c "temperature_F" (Just s) = do
       m <- asks sensors
       po <- asks (outPrefix . options)
       liftIO $ do
-        pubAliased c (po <> n <> "/temperature") (BCL.pack . show . _temperature $ s) True QoS2 [
+        pubAliased c (po <> n <> "/temperature") (BCL.pack . showf . _temperature $ s) True QoS2 [
           PropMessageExpiryInterval 900]
         pubAliased c (po <> n <> "/battery_ok") (if _batteryOK s then "1" else "0") True QoS2 [
           PropMessageExpiryInterval 900]
       atomically . modifyTVar' m $ Map.insert n s
+
+    showf f = showFFloat (Just 2) f ""
 
 handleSensor _ _ _ = pure ()
 
