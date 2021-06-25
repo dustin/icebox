@@ -44,10 +44,7 @@ parseGuess :: Parser Guess
 parseGuess = Guess <$> lexeme parseExpr <* symbol "->" <*> lexeme label
 
 sc :: Parser ()
-sc = L.space space1 lineComment blockComment
-  where
-    lineComment  = L.skipLineComment "#"
-    blockComment = L.skipBlockComment "/*" "*/"
+sc = L.space space1 (L.skipLineComment "#") (L.skipBlockComment "/*" "*/")
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
