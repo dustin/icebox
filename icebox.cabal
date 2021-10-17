@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df9419b9c9cf5dd118a3db226f164745bf484ad70eba0a453c7b9d04f6edeeee
+-- hash: 34e8dbb4bbb602b4fceb3f2df3f8963ce260076d5baa7c45d4ea901088e7ac78
 
 name:           icebox
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Icebox
       Logging
       NameConf
       Sensors
