@@ -3,6 +3,7 @@ module NameConf where
 import           Control.Applicative            ((<|>))
 import           Control.Monad.Combinators.Expr (Operator (..), makeExprParser)
 import           Data.Text                      (Text, pack)
+import qualified Data.Text.IO                   as TIO
 import           Data.Void                      (Void)
 import           Text.Megaparsec                (Parsec, between, parse, some)
 import           Text.Megaparsec.Char           (letterChar, space1)
@@ -55,7 +56,7 @@ label :: Parser Text
 label = pack <$> some letterChar
 
 parseFile :: Parser a -> String -> IO a
-parseFile f s = readFile s >>= (either (fail . errorBundlePretty) pure . parse f s) . pack
+parseFile f s = TIO.readFile s >>= either (fail . errorBundlePretty) pure . parse f s
 
 parseConfFile :: String -> IO [Guess]
 parseConfFile = parseFile (sc >> some parseGuess)
