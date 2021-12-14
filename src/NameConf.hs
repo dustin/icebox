@@ -2,11 +2,10 @@ module NameConf where
 
 import           Control.Applicative            ((<|>))
 import           Control.Monad.Combinators.Expr (Operator (..), makeExprParser)
-import           Data.Char                      (isAlpha)
 import           Data.Text                      (Text, pack)
 import           Data.Void                      (Void)
-import           Text.Megaparsec                (Parsec, between, parse, satisfy, some)
-import           Text.Megaparsec.Char           (space1)
+import           Text.Megaparsec                (Parsec, between, parse, some)
+import           Text.Megaparsec.Char           (letterChar, space1)
 import qualified Text.Megaparsec.Char.Lexer     as L
 import           Text.Megaparsec.Error          (errorBundlePretty)
 
@@ -53,7 +52,7 @@ symbol :: Text -> Parser Text
 symbol = L.symbol sc
 
 label :: Parser Text
-label = pack <$> some (satisfy isAlpha)
+label = pack <$> some letterChar
 
 parseFile :: Parser a -> String -> IO a
 parseFile f s = readFile s >>= (either (fail . errorBundlePretty) pure . parse f s) . pack
